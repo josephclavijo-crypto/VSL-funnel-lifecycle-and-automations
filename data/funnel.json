@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "screenReaderTitle": "Master view of the VSL funnel customer journey with corrected stage numbering, including the CRM Update MQL/DQL automation linked under stages 02 and 03 with full purpose, overview, and branching tree detail.",
+    "eyebrow": "24/7 evergreen call-booking funnel",
+    "title": "VSL funnel — lifecycle and automations",
+    "description": "Every stage a contact moves through, from opt-in to client. Each card shows what changes at that moment and which GHL automation drives it. Click a stage to expand, then click an automation to see its full logic.",
+    "footer": "Send the next workflow JSON and which stage it belongs to, and it gets added under that stage."
+  },
+  "automations": [
+    {
+      "id": "automation-mql-dql-short-credit-form",
+      "name": "CRM Update — MQL / DQL (Short Credit Form Only)",
+      "status": "mapped",
+      "purpose": "Runs whenever a lead submits either short credit form. Reads the self-reported credit tier and routes the contact: below 640 clears MQL status and marks Marketing Disqualified Lead; 640 and above marks Marketing Qualified Lead with the submission date recorded. This is the single source of truth for whether a contact can continue toward booking a discovery call.",
+      "overview": [
+        "Trigger: Form submitted (either short credit form)",
+        "   |",
+        "   v",
+        "IF credit score is \"Low: below 640\"",
+        "   |",
+        "   |- YES -> Remove MQL tag, add MDQL tag, clear MQL field",
+        "   |          -> Set MQL = No, set DQ date, lifecycle = MDQL",
+        "   |          -> End",
+        "   |",
+        "   '- NO  -> Remove MDQL tag, add MQL tag",
+        "              -> Set lifecycle = Marketing Qualified Lead",
+        "              -> Set MQL = Yes, set MQL submit date, MQL date",
+        "              -> End"
+      ],
+      "treeId": "tree-mql-dql-short-credit-form"
+    },
+    {
+      "id": "automation-lead-capture-follow-up-primary",
+      "name": "Lead Capture Follow-Up Email — Primary",
+      "status": "not-linked"
+    }
+  ],
+  "trees": [
+    {
+      "id": "tree-mql-dql-short-credit-form",
+      "rootNodeIds": [
+        "node-trigger-short-credit-form",
+        "node-gate-low-credit"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-trigger-short-credit-form",
+      "type": "trigger",
+      "iconLabel": "TR",
+      "title": "Trigger: form submitted",
+      "subtitle": "Either short credit form",
+      "params": [
+        { "label": "Form 1", "value": "6ibcP6gS..." },
+        { "label": "Form 2", "value": "UYdJukRC..." }
+      ]
+    },
+    {
+      "id": "node-gate-low-credit",
+      "type": "condition",
+      "layout": "gate",
+      "title": "Low credit?",
+      "subtitle": "fieldId ulgzndOvnl...",
+      "params": [
+        { "label": "Field", "value": "ulgzndOvnl..." },
+        { "label": "Value", "value": "Low: below 640" }
+      ],
+      "branches": [
+        {
+          "id": "branch-low-credit-yes",
+          "label": "YES",
+          "tone": "success",
+          "nodeIds": [
+            "node-low-credit-remove-mql-tag",
+            "node-low-credit-add-mdql-tag",
+            "node-low-credit-clear-mql",
+            "node-low-credit-update-mql-dq-date",
+            "node-low-credit-end"
+          ]
+        },
+        {
+          "id": "branch-low-credit-no",
+          "label": "NO",
+          "tone": "neutral",
+          "nodeIds": [
+            "node-good-credit-remove-mdql-tag",
+            "node-good-credit-add-mql-tag",
+            "node-good-credit-update-lifecycle",
+            "node-good-credit-update-submit-date",
+            "node-good-credit-end"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "node-low-credit-remove-mql-tag",
+      "type": "action",
+      "title": "Remove tag",
+      "subtitle": "remove_contact_tag",
+      "params": [{ "label": "Tag", "value": "marketing - qualified lead" }]
+    },
+    {
+      "id": "node-low-credit-add-mdql-tag",
+      "type": "action",
+      "title": "Add tag",
+      "subtitle": "add_contact_tag",
+      "params": [{ "label": "Tag", "value": "marketing - disqualified lead" }]
+    },
+    {
+      "id": "node-low-credit-clear-mql",
+      "type": "action",
+      "title": "Clear field — MQL",
+      "subtitle": "clear_field_data",
+      "params": [
+        { "label": "Field", "value": "KCFkdLm..." },
+        { "label": "Value", "value": "(cleared)" }
+      ]
+    },
+    {
+      "id": "node-low-credit-update-mql-dq-date",
+      "type": "action",
+      "title": "Update field — MQL & DQ date",
+      "subtitle": "update_field_data",
+      "params": [
+        { "label": "MQL", "value": "= No" },
+        { "label": "DQ date", "value": "= current date" },
+        { "label": "Lifecycle", "value": "= MDQL" }
+      ]
+    },
+    {
+      "id": "node-low-credit-end",
+      "type": "end",
+      "label": "Marketing disqualified lead"
+    },
+    {
+      "id": "node-good-credit-remove-mdql-tag",
+      "type": "action",
+      "title": "Remove tag",
+      "subtitle": "remove_contact_tag",
+      "params": [{ "label": "Tag", "value": "marketing - disqualified lead" }]
+    },
+    {
+      "id": "node-good-credit-add-mql-tag",
+      "type": "action",
+      "title": "Add tag",
+      "subtitle": "add_contact_tag",
+      "params": [{ "label": "Tag", "value": "marketing - qualified lead" }]
+    },
+    {
+      "id": "node-good-credit-update-lifecycle",
+      "type": "action",
+      "title": "Update field",
+      "subtitle": "update_field_data",
+      "params": [{ "label": "Lifecycle", "value": "= Marketing Qualified Lead" }]
+    },
+    {
+      "id": "node-good-credit-update-submit-date",
+      "type": "action",
+      "title": "Update field — MQL submit date",
+      "subtitle": "update_field_data",
+      "params": [
+        { "label": "Submit date", "value": "= current date" },
+        { "label": "MQL", "value": "= Yes" },
+        { "label": "MQL date", "value": "= current date" }
+      ]
+    },
+    {
+      "id": "node-good-credit-end",
+      "type": "end",
+      "label": "Marketing qualified lead"
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage-lead",
+      "num": "01",
+      "kind": "stage",
+      "title": "Lead",
+      "definition": "Opted in to the VSL opt-in form.",
+      "fields": [
+        { "label": "VSL opt-in date", "value": "= current date" },
+        { "label": "First touch attribution", "value": "written only if empty" },
+        { "label": "Last touch attribution", "value": "always written" },
+        { "label": "Contact lifecycle stage", "value": "= Lead" },
+        { "label": "Tags", "value": "misc. tags added" }
+      ],
+      "automationIds": []
+    },
+    {
+      "id": "stage-marketing-qualified-lead",
+      "num": "02",
+      "kind": "stage",
+      "title": "Marketing qualified lead",
+      "definition": "Submitted the discovery financial form with correct qualifying answers.",
+      "fields": [
+        { "label": "Marketing qualified lead date", "value": "= current date" },
+        { "label": "Marketing qualified lead", "value": "= Yes" },
+        { "label": "Tag", "value": "marketing qualified lead" }
+      ],
+      "automationIds": [
+        "automation-mql-dql-short-credit-form",
+        "automation-lead-capture-follow-up-primary"
+      ]
+    },
+    {
+      "id": "stage-marketing-disqualified-lead",
+      "num": "03",
+      "kind": "stage",
+      "title": "Marketing disqualified lead",
+      "definition": "Same form as MQL, but answers do not qualify (e.g. low credit). Exits the sales-qualification track.",
+      "fields": [
+        { "label": "Marketing disqualified lead date", "value": "= current date" },
+        { "label": "Marketing qualified lead", "value": "= No" },
+        { "label": "Tag", "value": "marketing disqualified lead" }
+      ],
+      "automationIds": ["automation-mql-dql-short-credit-form"]
+    },
+    {
+      "id": "stage-opportunity",
+      "num": "04",
+      "kind": "stage",
+      "title": "Opportunity",
+      "definition": "Books a discovery call. Only qualified (MQL) users are allowed to book.",
+      "fields": [
+        { "label": "Pipeline", "value": "= discovery specialist pipeline" },
+        { "label": "Pipeline stage", "value": "= discovery - scheduled" },
+        { "label": "Contact lifecycle stage", "value": "= Opportunity" },
+        { "label": "Tag", "value": "discovery - scheduled" }
+      ],
+      "automationIds": []
+    },
+    {
+      "id": "stage-sales-qualified-opportunity",
+      "num": "05",
+      "kind": "stage",
+      "title": "Sales qualified opportunity",
+      "definition": "Showed up to the discovery call and is a likely fit: has money, is interested, has good credit, and stands to benefit from the program.",
+      "fields": [
+        { "label": "Sales qualified lead", "value": "= Yes" },
+        { "label": "Sales qualified lead date", "value": "= current date" }
+      ],
+      "automationIds": []
+    },
+    {
+      "id": "stage-open-question-opportunity-to-sqo",
+      "num": "!",
+      "kind": "flag",
+      "title": "Open question — how does Opportunity become SQO?",
+      "definition": "Not yet confirmed whether this is a manual call disposition by the discovery specialist or an automated trigger.",
+      "fields": [],
+      "automationIds": []
+    },
+    {
+      "id": "stage-enrollment-scheduled",
+      "num": "06",
+      "kind": "stage",
+      "title": "Enrollment scheduled",
+      "definition": "Only available for SQOs — the discovery specialist books a call only on an enrollment specialist calendar if the contact is an SQO.",
+      "fields": [
+        { "label": "Tag", "value": "enrollment - scheduled" },
+        { "label": "Enrollment meeting scheduled date", "value": "= current date" }
+      ],
+      "automationIds": []
+    },
+    {
+      "id": "stage-client",
+      "num": "07",
+      "kind": "stage",
+      "title": "Client",
+      "definition": "Becomes a client by paying for the program on a sales call.",
+      "fields": [
+        { "label": "Contact lifecycle stage", "value": "= Client" },
+        { "label": "Closed won date", "value": "= current date" },
+        { "label": "Tags", "value": "rym client, enrollment - completed" }
+      ],
+      "automationIds": []
+    }
+  ]
+}
